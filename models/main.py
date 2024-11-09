@@ -19,9 +19,10 @@ MODELS = {
     "trash1": "maixbach/swin-tiny-patch4-window7-224-finetuned-trash_classification",
     "trash2": "edwinpalegre/ee8225-group4-vit-trashnet-enhanced"
 }
-pipes = {name: pipeline("image-classification", model=model_id) for name, model_id in MODELS.items()}
 
-print(pipes["trash2"]("image1.png"))
+# Test to find possible outputs of model
+# pipes = {name: pipeline("image-classification", model=model_id) for name, model_id in MODELS.items()}
+# print(pipes["trash2"]("image1.png"))
 
 
 class Model:
