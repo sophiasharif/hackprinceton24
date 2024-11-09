@@ -42,8 +42,46 @@ void setup()
   pinMode(5, OUTPUT);
 }
 
+int firstGateZero = 0;
+int secondGateZero = 0;
+
+int firstGateSetpoint = 0;
+int secondGateSetpoint = 0;
+
+int stringDirection = 0;
+
+const int gateTicksForClosed = 10;
+
 void loop()
 {
+  if (Serial.available() > 0) {
+    int command = Serial.read();
+    switch (command) {
+      // TODO commands for manual control of the gates
+      
+      case '0': // sort to the first category (first gate closed, second open)
+        firstGateSetpoint = firstGateZero + gateTicksForClosed;
+        secondGateSetpoint = secondGateZero;
+        break;
+      case '1': // sort to the second category (second gate closed, first open)
+        firstGateSetpoint = firstGateZero;
+        secondGateSetpoint = secondGateZero + gateTicksForClosed;
+        break;
+      case '2': // sort to the third category (both gates open)
+        firstGateSetpoint = firstGateZero;
+        secondGateSetpoint = secondGateZero;
+        break;
+      case '+': // let out the string
+        stringDirection = 1;
+        break;
+      case '-': // pull in the string
+        stringDirection = -1;
+        break;
+      case '/': // hold the string
+        stringDirection = 0;
+        break;
+    }
+  }
   Serial.println("Looping");
   for (int i = 1500; i >= 1; i--) {
     for (int phase = 0; phase <= 7; phase++) {
