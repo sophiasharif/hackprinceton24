@@ -30,6 +30,14 @@ df = spark.read.format("delta").load(DELTA_PATH)
 
 # Filter images without metadata (e.g., empty "description")
 images_to_update = df.filter(col("description") == "")
+
+# Check if there are any images to update
+if images_to_update.count() == 0:
+    print("No images found without metadata. Exiting.")
+    spark.stop()
+    exit(0)
+
+# Show images to update
 print("Images to update:")
 images_to_update.show()
 
