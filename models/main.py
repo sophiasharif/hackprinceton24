@@ -4,6 +4,11 @@ from enum import Enum
 from transformers import pipeline
 from PIL import Image
 
+class Disposable(Enum):
+    RECYCLE = 0
+    COMPOST = 1
+    TRASH = 2
+
 # Available models 
 MODELS = {
     "trash1": "maixbach/swin-tiny-patch4-window7-224-finetuned-trash_classification",
@@ -24,24 +29,13 @@ class Model:
         label = self.class_to_label_map[results[0]["label"]]
         return label
 
-
-# pipe = pipes["trash1"]
-
-# # load image
-# image_path = "image1.png"
-# image = Image.open(image_path)
-
-# # classify
-# results = pipe(image)
-# print(results)
-
-test = Model(MODELS["trash1"], {
-    'Paper': 0,
-    'Other': 2,
-    'Plastic': 0,
-    'G_M': 0,
-    'Organic': 1
+trash1 = Model(MODELS["trash1"], {
+    'Paper': Disposable.RECYCLE,
+    'Other': Disposable.TRASH,
+    'Plastic': Disposable.RECYCLE,
+    'G_M': Disposable.RECYCLE,
+    'Organic': Disposable.COMPOST,
 })
 
-print(test.classify("image2.png"))
+print(trash1.classify("image1.png"))
 
