@@ -1,5 +1,5 @@
 '''
-add_metadata.py
+add_metadata.py: adds metadata to images missing it in a Delta table, does not do anything to images with metadata
 
 - Filters images without metadata (e.g., missing description).
 - Retrieves and prepares metadata for each image.
@@ -11,6 +11,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from delta import configure_spark_with_delta_pip
 from delta.tables import DeltaTable
+from gpt import get_metadata
 import os
 
 DELTA_PATH = "../delta-table"
@@ -29,25 +30,19 @@ df = spark.read.format("delta").load(DELTA_PATH)
 
 # Filter images without metadata (e.g., empty "description")
 images_to_update = df.filter(col("description") == "")
+print("Images to update:")
 images_to_update.show()
 
 # Collect filenames to update
 image_rows = images_to_update.select("filename").collect()
 image_filenames = [row.filename for row in image_rows]
 
-# Simulated metadata retrieval (replace with actual metadata fetching logic)
-image_metadata = {
-    'image3.jpg': {'is_recyclable': True, 'is_compostable': False, 'is_metal': False, 'brand': 'Kirkland', 'description': 'empty water bottle'},
-    'image2.jpg': {'is_recyclable': False, 'is_compostable': False, 'is_metal': False, 'brand': 'Ruffles', 'description': 'Baked cheddar and sour cream chips'},
-    'image1.jpg': {'is_recyclable': False, 'is_compostable': True, 'is_metal': False, 'brand': '', 'description': 'Paper napkin wrapped in plastic'}
-}
-
-
-# image_metadata = {}
-# for filename in image_filenames:
-#     metadata = get_metadata(filename)
-#     image_metadata[filename] = metadata
-#     print(f"Metadata for {filename}: {metadata}")
+# Retrieve metadata for each image
+image_metadata = {}
+for filename in image_filenames:
+    metadata = get_metadata(filename)
+    image_metadata[filename] = metadata
+    print(f"Metadata for {filename}: {metadata}")
 
 # Prepare metadata DataFrame
 metadata_tuples = [
@@ -82,4 +77,5 @@ deltaTable.alias("old").merge(
 
 # Show the updated DataFrame
 updated_df = spark.read.format("delta").load(DELTA_PATH)
+print("Updated Delta table:")
 updated_df.show()
