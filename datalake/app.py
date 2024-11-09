@@ -68,6 +68,10 @@ category_mapping = {
 }
 melted_df['Category'] = melted_df['Category'].map(category_mapping)
 
+# show dataframes
+print(pandas_df)
+print(melted_df)
+
 # Create the Dash app
 app = dash.Dash(__name__)
 
@@ -87,7 +91,7 @@ fig = px.area(
 
 # Update figure layout for better readability
 fig.update_layout(
-    xaxis=dict(tickformat='%Y-%m-%d %H:%M'),
+    xaxis=dict(tickformat='%H:%M'),
     legend_title_text='Category'
 )
 
