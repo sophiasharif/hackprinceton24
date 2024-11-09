@@ -2,14 +2,19 @@
 from transformers import pipeline
 from PIL import Image
 
-pipe = pipeline("image-classification", model="maixbach/swin-tiny-patch4-window7-224-finetuned-trash_classification")
+# Available models 
+MODELS = {
+    "trash1": "maixbach/swin-tiny-patch4-window7-224-finetuned-trash_classification",
+    "trash2": "edwinpalegre/ee8225-group4-vit-trashnet-enhanced"
+}
+pipes = {name: pipeline("image-classification", model=model_id) for name, model_id in MODELS.items()}
 
-# Load your image (replace with your image path)
-image_path = "example_image.jpg"
+pipe = pipes["trash1"]
+
+# load image
+image_path = "image1.png"
 image = Image.open(image_path)
 
-# Use the pipeline to classify the image
+# classify
 results = pipe(image)
-
-# Display the results
 print(results)
