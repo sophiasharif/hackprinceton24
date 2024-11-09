@@ -53,5 +53,5 @@ trash2 = Model(MODELS["trash2"], {
     'metal': Metal.METAL,
 })
 
-print(trash2.classify("image1.png"))
+print(trash1.classify("image1.png"))
 

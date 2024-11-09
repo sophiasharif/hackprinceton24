@@ -21,8 +21,13 @@ new_images_df = spark.read.format("binaryFile").load(IMAGE_PATH)
 
 # extract the filename from the file path & modification time
 new_images_df = new_images_df.withColumn("filename", fn.element_at(fn.split(new_images_df.path, "/"), -1))
-new_images_df = new_images_df.withColumn("description", fn.lit("test"))
-new_images_df = new_images_df.select("filename", "modificationTime", "description")
+new_images_df = new_images_df.withColumn("location", fn.lit("")) \
+    .withColumn("description", fn.lit("")) \
+    .withColumn("is_recyclable", fn.lit(False)) \
+    .withColumn("is_compostable", fn.lit(False)) \
+    .withColumn("is_metal", fn.lit(False)) \
+    .withColumn("brand", fn.lit(""))
+new_images_df = new_images_df.select("filename", "location", "modificationTime", "description", "is_recyclable", "is_compostable", "is_metal", "brand")
 
 try:
     existing_df = spark.read.format("delta").load(DELTA_PATH)
