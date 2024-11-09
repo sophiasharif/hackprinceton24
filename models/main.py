@@ -14,7 +14,7 @@ class Metal(Enum):
     METAL = 1
     TRASH = 2
 
-# Available models 
+# Available models -- add more models here
 MODELS = {
     "trash1": "maixbach/swin-tiny-patch4-window7-224-finetuned-trash_classification",
     "trash2": "edwinpalegre/ee8225-group4-vit-trashnet-enhanced"
