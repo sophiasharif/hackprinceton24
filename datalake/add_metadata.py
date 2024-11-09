@@ -2,9 +2,11 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from delta import configure_spark_with_delta_pip
 import os
+from openai import OpenAI
+
 
 DELTA_PATH = "../delta-table"
-
+IMAGE_PATH = "../images"
 
 builder = (
     SparkSession.builder
@@ -17,6 +19,13 @@ spark = configure_spark_with_delta_pip(builder).getOrCreate()
 df = spark.read.format("delta").load(DELTA_PATH)
 
 # filter for images without metadata (e.g., missing "description" or "classification" fields)
-images_without_metadata = df.filter(df["description"].isNull())
+images_to_update = df.filter(col("description") == "test")
+images_to_update.show()
 
-images_without_metadata.show()
+image_filenames = images_to_update.select("filename").collect()
+image_paths = [os.path.join(IMAGE_PATH, row.filename) for row in image_filenames]
+print(image_paths)
+
+
+
+
