@@ -30,9 +30,12 @@ new_images_df = spark.read.format("binaryFile").load(IMAGE_PATH)
 # Load images with essential fields only
 new_images_df = spark.read.format("binaryFile").load(IMAGE_PATH)
 new_images_df = new_images_df.withColumn("filename", fn.element_at(fn.split(new_images_df.path, "/"), -1))
-new_images_df = new_images_df.select("filename", "modificationTime")
+new_images_df = new_images_df.withColumnRenamed("modificationTime", "time")
+new_images_df = new_images_df.select("filename", "time")
 
 # Add metadata columns with default values
+new_images_df = new_images_df.withColumn("state", fn.lit("NJ"))
+new_images_df = new_images_df.withColumn("city", fn.lit("Princeton"))
 new_images_df = new_images_df.withColumn("description", fn.lit(""))
 new_images_df = new_images_df.withColumn("is_recyclable", fn.lit(None).cast("boolean"))
 new_images_df = new_images_df.withColumn("is_compostable", fn.lit(None).cast("boolean"))
@@ -51,3 +54,7 @@ except Exception as e:
     new_images_df.write.format("delta").mode("overwrite").option("mergeSchema", "true").save(DELTA_PATH)
 
 # ... [rest of your code, such as printing schema and contents] ...
+
+# show schema
+print("Delta table")
+new_images_df.show()
