@@ -38,5 +38,3 @@ def get_metadata(filename):
     metadata = json.loads(metadata_json)
     return metadata
 
-
-print(get_metadata("image2.jpg"))
