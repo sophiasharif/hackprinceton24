@@ -1,4 +1,5 @@
 import base64
+import json
 from openai import OpenAI
 
 def encode_image(image_path):
@@ -43,4 +44,7 @@ response = client.chat.completions.create(
   ],
 )
 
-print(response.choices[0].message.content)
+metadata_json = response.choices[0].message.content.strip()
+metadata = json.loads(metadata_json)  # Convert to Python dictionary
+print(metadata)
+
