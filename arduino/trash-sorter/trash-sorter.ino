@@ -1,4 +1,4 @@
-const int t = 1000;
+const int stepperDelayMicros = 1300;
 
 struct Stepper {
   int pins[4];
@@ -13,13 +13,13 @@ struct Stepper {
   void turnOn(int phase) {
     int pinOn = phase / 2;
     bool nextOn = (phase % 2) == 1;
-    digitalWrite(pins[0], HIGH);
-    digitalWrite(pins[1], HIGH);
-    digitalWrite(pins[2], HIGH);
-    digitalWrite(pins[3], HIGH);
-    digitalWrite(pins[pinOn], LOW);
+    digitalWrite(pins[0], LOW);
+    digitalWrite(pins[1], LOW);
+    digitalWrite(pins[2], LOW);
+    digitalWrite(pins[3], LOW);
+    digitalWrite(pins[pinOn], HIGH);
     if (nextOn) {
-      digitalWrite(pins[(pinOn + 1) % 4], LOW);
+      digitalWrite(pins[(pinOn + 1) % 4], HIGH);
     }
   }
 
@@ -32,33 +32,39 @@ struct Stepper {
 };
 
 Stepper stepper1(2, 3, 4, 5);
+Stepper stepper2(6, 7, 8, 9);
+Stepper stepper3(10, 11, 12, 13);
 
 void setup()
 {
   Serial.begin(9600);
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
+  for (int pin = 2; pin <= 13; pin++) {
+    pinMode(pin, OUTPUT);
+  }
 }
 
 int firstGateZero = 0;
-int secondGateZero = 0;
-
+int firstGatePosition = 0;
 int firstGateSetpoint = 0;
+
+int secondGateZero = 0;
+int secondGatePosition = 0;
 int secondGateSetpoint = 0;
 
 int stringDirection = 0;
+int stringPhase = 0;
 
-const int gateTicksForClosed = 10;
+const int gateTicksForClosed = 1000;
 
 void loop()
 {
   if (Serial.available() > 0) {
     int command = Serial.read();
+    Serial.print("Got ");
+    Serial.println((char)command);
     switch (command) {
       // TODO commands for manual control of the gates
-      
+
       case '0': // sort to the first category (first gate closed, second open)
         firstGateSetpoint = firstGateZero + gateTicksForClosed;
         secondGateSetpoint = secondGateZero;
@@ -82,11 +88,33 @@ void loop()
         break;
     }
   }
-  Serial.println("Looping");
-  for (int i = 1500; i >= 1; i--) {
-    for (int phase = 0; phase <= 7; phase++) {
-      stepper1.turnOn(phase);
-      delayMicroseconds(t);
-    }
+
+  if (firstGatePosition < firstGateSetpoint) {
+    firstGatePosition++;
+    stepper1.turnOn((8 + firstGatePosition % 8) % 8);
   }
+  else if (firstGatePosition > firstGateSetpoint) {
+    firstGatePosition--;
+    stepper1.turnOn((8 + firstGatePosition % 8) % 8);
+  }
+
+  if (secondGatePosition < secondGateSetpoint) {
+    secondGatePosition++;
+    stepper2.turnOn((8 + secondGatePosition % 8) % 8);
+  }
+  else if (secondGatePosition > secondGateSetpoint) {
+    secondGatePosition--;
+    stepper2.turnOn((8 + secondGatePosition % 8) % 8);
+  }
+
+  if (stringDirection == 1) {
+    stringPhase = (stringPhase == 7) ? 0 : (stringPhase + 1);
+    stepper3.turnOn(stringPhase);
+  }
+  else if (stringDirection == -1) {
+    stringPhase = (stringPhase == 0) ? 7 : (stringPhase - 1);
+    stepper3.turnOn(stringPhase);
+  }
+
+  delayMicroseconds(stepperDelayMicros);
 }
