@@ -9,12 +9,19 @@ class Disposable(Enum):
     COMPOST = 1
     TRASH = 2
 
+class Metal(Enum):
+    RECYCLE = 0
+    METAL = 1
+    TRASH = 2
+
 # Available models 
 MODELS = {
     "trash1": "maixbach/swin-tiny-patch4-window7-224-finetuned-trash_classification",
     "trash2": "edwinpalegre/ee8225-group4-vit-trashnet-enhanced"
 }
 pipes = {name: pipeline("image-classification", model=model_id) for name, model_id in MODELS.items()}
+
+print(pipes["trash2"]("image1.png"))
 
 
 class Model:
@@ -37,5 +44,13 @@ trash1 = Model(MODELS["trash1"], {
     'Organic': Disposable.COMPOST,
 })
 
-print(trash1.classify("image1.png"))
+trash2 = Model(MODELS["trash2"], {
+    'paper': Metal.RECYCLE,
+    'cardboard': Metal.RECYCLE,
+    'plastic': Metal.RECYCLE,
+    'trash': Metal.TRASH,
+    'metal': Metal.METAL,
+})
+
+print(trash2.classify("image1.png"))
 
