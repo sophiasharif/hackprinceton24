@@ -2,8 +2,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from delta import configure_spark_with_delta_pip
 import os
-from openai import OpenAI
-
 
 DELTA_PATH = "../delta-table"
 IMAGE_PATH = "../images"
