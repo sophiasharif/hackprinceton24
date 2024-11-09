@@ -32,3 +32,9 @@ load a saved table from another script (if we want to create a frontend that sho
 df = spark.read.format("delta").load("/tmp/delta-table")
 df.show()
 ```
+
+## Instructions on how to use
+
+- add new image to `images` directory
+- run `python update_data_frame.py` to add it to the delta lake
+- run `python add_metadata` to generate metadata for the image and update the delta lake

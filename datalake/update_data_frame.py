@@ -52,9 +52,3 @@ except Exception as e:
     print("Delta table not found. Creating a new one.")
     # Overwrite and create new Delta table with initial data
     new_images_df.write.format("delta").mode("overwrite").option("mergeSchema", "true").save(DELTA_PATH)
-
-# ... [rest of your code, such as printing schema and contents] ...
-
-# show schema
-print("Delta table")
-new_images_df.show()
