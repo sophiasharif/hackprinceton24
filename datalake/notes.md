@@ -36,5 +36,6 @@ df.show()
 ## Instructions on how to use
 
 - add new image to `images` directory
-- run `python update_data_frame.py` to add it to the delta lake
-- run `python add_metadata` to generate metadata for the image and update the delta lake
+- run `python update_data_frame.py` to add new images to the delta lake
+- run `python add_metadata.py` to generate metadata for the image and update the delta lake
+- run `python add_notional_data.py` to add the data in the json file to the delta lake
