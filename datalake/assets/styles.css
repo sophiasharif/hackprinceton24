@@ -1,0 +1,33 @@
+/* assets/style.css */
+
+/* Root container */
+body {
+  background-color: #2c2c2e;
+  color: white;
+  font-family: "Roboto", sans-serif;
+}
+
+/* Style for H1 title */
+h1 {
+  font-size: 36px;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Style for H2 subtitles */
+h2 {
+  font-size: 28px;
+  color: #e0e0e0;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* Graph container styling */
+.graph-container {
+  background-color: #1e1e1e;
+  padding: 20px;
+  margin: 50px auto;
+  border-radius: 8px;
+  max-width: 800px;
+}
