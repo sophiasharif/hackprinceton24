@@ -160,7 +160,6 @@ fig_bar = px.bar(
         'Category': 'Category'
     },
     title='Waste Composition by Brand',
-    text='total_count'  # Display total waste count on bars
 )
 
 fig_bar.update_layout(
@@ -191,7 +190,7 @@ fig_most_wasteful = px.bar(
         'brand': 'Brand',
         'total_waste_count': 'Total Waste Items'
     },
-    title='Top Most Wasteful Brands'
+    title='Top Most Wasteful (and Most Consumed) Brands'
 )
 
 fig_most_wasteful.update_layout(
