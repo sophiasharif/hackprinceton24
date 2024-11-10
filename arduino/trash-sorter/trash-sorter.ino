@@ -39,11 +39,11 @@ void decrementPhase(int& x) {
   x = (x <= 0) ? 7 : (x - 1);
 }
 
-const int kickTicks = 1000;
+const int kickTicks = 1400;
 void doKick(int& setpoint, int& phase, bool& kicking, Stepper& stepper) {
   if (setpoint > 0) {
     setpoint--;
-    incrementPhase(phase);
+    decrementPhase(phase);
     stepper.turnOn(phase);
     if (setpoint == 0 && kicking) {
       setpoint = -kickTicks;
@@ -52,7 +52,7 @@ void doKick(int& setpoint, int& phase, bool& kicking, Stepper& stepper) {
   }
   else if (setpoint < 0) {
     setpoint++;
-    decrementPhase(phase);
+    incrementPhase(phase);
     stepper.turnOn(phase);
   }
   else {
@@ -83,7 +83,8 @@ bool secondGateKicking = false;
 int secondGateSetpoint = 0;
 int secondGatePhase = 0;
 
-int stringDirection = 0;
+int stringPosition = 0;
+int stringSetpoint = 0;
 int stringPhase = 0;
 
 void loop()
@@ -93,10 +94,28 @@ void loop()
     Serial.print("Got ");
     Serial.println((char)command);
     switch (command) {
-      // TODO commands for manual control of the gates
-
-      // TODO remove + and - and / and just include the string movement in the kick
-      // (so the only commands will be manual control or a whole sort)
+      // stepper 1 adjustment
+      case 'a':
+        firstGateSetpoint += 100;
+        break;
+      case 'A':
+        firstGateSetpoint -= 100;
+        break;
+      // stepper 2 adjustment
+      case 'b':
+        secondGateSetpoint += 100;
+        break;
+      case 'B':
+        secondGateSetpoint -= 100;
+        break;
+      case 'c':
+        stringPosition += 400;
+        stringSetpoint = 0;
+        break;
+      case 'C':
+        stringPosition -= 400;
+        stringSetpoint = 0;
+        break;
 
       case '0': // kick out into the first category
         firstGateKicking = true;
@@ -106,29 +125,37 @@ void loop()
         secondGateKicking = true;
         secondGateSetpoint = kickTicks;
         break;
-      case '+': // let out the string
-        stringDirection = 1;
+      case 'p': // pull in the string to the first category
+        stringSetpoint = -5500;
         break;
-      case '-': // pull in the string
-        stringDirection = -1;
+      case 'P': // pull in the string to the second category
+        stringSetpoint = -9500;
         break;
-      case '/': // hold the string
-        stringDirection = 0;
+      case 'q': // pull in the string to bring the object off the edge (the third category)
+        stringSetpoint = -11000;
+        break;
+      case 'r': // reset the string to its zero position
+        stringSetpoint = 0;
         break;
     }
   }
 
   doKick(firstGateSetpoint, firstGatePhase, firstGateKicking, stepper1);
-//  doKick(secondGateSetpoint, secondGatePhase, secondGateKicking, stepper2);
-//
-//  if (stringDirection == 1) {
-//    stringPhase = (stringPhase == 7) ? 0 : (stringPhase + 1);
-//    stepper3.turnOn(stringPhase);
-//  }
-//  else if (stringDirection == -1) {
-//    stringPhase = (stringPhase == 0) ? 7 : (stringPhase - 1);
-//    stepper3.turnOn(stringPhase);
-//  }
+  doKick(secondGateSetpoint, secondGatePhase, secondGateKicking, stepper2);
+
+  if (stringSetpoint > stringPosition) {
+    stringPosition++;
+    decrementPhase(stringPhase);
+    stepper3.turnOn(stringPhase);
+  }
+  else if (stringSetpoint < stringPosition) {
+    stringPosition--;
+    incrementPhase(stringPhase);
+    stepper3.turnOn(stringPhase);
+  }
+  else {
+    stepper3.turnOff();
+  }
 
   delayMicroseconds(stepperDelayMicros);
 }
