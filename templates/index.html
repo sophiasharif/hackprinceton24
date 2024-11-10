@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera Feed</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #808080;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button.selected {
+            background-color: #4CAF50;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error, .notification {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid;
+            width: 100%;
+            max-width: 640px;
+            text-align: center;
+            border-radius: 5px;
+        }
+        .error {
+            color: red;
+            border-color: red;
+            display: none;
+            background-color: #ffe6e6;
+        }
+        .notification {
+            color: green;
+            border-color: green;
+            display: none;
+            background-color: #e6ffe6;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 100px;
+            width: 100%;
+            max-width: 1280px; /* Ensures consistent max width */
+            text-align: center;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #camera-container {
+            width: 100%;
+            max-width: 1280px; /* Reduced max-width for better layout */
+            position: relative;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            overflow: hidden;
+            background-color: #000; /* Fallback background */
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer; /* Indicate clickable area */
+        }
+        #camera-container img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        /* Maintain aspect ratio on smaller screens */
+        @media (max-width: 1280) {
+            #camera-container {
+                padding-top: 56.25%; /* Ensure 16:9 Aspect Ratio on all screens */
+            }
+        }
+        /* Optional: Adjust container layout in landscape */
+        @media (orientation: landscape) and (max-width: 1280px) {
+            .controls {
+                flex-direction: row;
+            }
+            #results {
+                max-width: 800px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="camera-container" onclick="handleVideoClick()">
+            <img src="{{ url_for('video_feed') }}" 
+                 alt="Camera Feed"
+                 onerror="handleImageError(this)">
+        </div>
+        
+        <div id="error-message" class="error"></div>
+        <div id="notification-message" class="notification"></div>
+        
+        <div class="controls">
+            <button onclick="switchModel('trash1')">Trash Model 1</button>
+            <button onclick="switchModel('trash2')">Trash Model 2</button>
+            <button onclick="switchModel('fruits')">Fruits Model</button>
+        </div>
+        
+        <div id="results">
+            <h3>Classification Result:</h3>
+            <div id="results-content">Awaiting classification...</div>
+        </div>
+    </div>
+
+    <script>
+        function handleImageError(img) {
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('error-message').textContent = 
+                'Error loading camera feed. Please check if camera is connected.';
+            img.style.display = 'none';
+        }
+
+        function switchModel(modelName) {
+            fetch(`/switch_model/${modelName}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error switching model:', data.error);
+                        displayError(`Error switching model: ${data.error}`);
+                    } else if (data.success) {
+                        document.querySelectorAll('.controls button').forEach(btn => {
+                            btn.classList.remove('selected');
+                        });
+                        document.querySelector(`button[onclick="switchModel('${modelName}')"]`).classList.add('selected');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    displayError('An error occurred while switching models.');
+                });
+        }
+
+                // Function to fetch and display the top classification result
+        function fetchClassification() {
+            const resultsContent = document.getElementById('results-content');
+            resultsContent.innerHTML = `<p>Classifying...</p>`; // Show loading message
+
+            return fetch('/classify')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        resultsContent.textContent = data.error;
+                    } else {
+                        resultsContent.innerHTML = `
+                            <p><strong>Category:</strong> ${data.category}</p>
+                            <p><strong>Label:</strong> ${data.label}</p>
+                            <p><strong>Confidence:</strong> ${data.confidence}</p>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resultsContent.textContent = 'An error occurred while fetching classification.';
+                });
+        }
+
+
+        // Function to display error messages
+        function displayError(message) {
+            const errorDiv = document.getElementById('error-message');
+            const notificationDiv = document.getElementById('notification-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            notificationDiv.style.display = 'none';
+        }
+
+        // Function to display notification messages
+        function displayNotification(message) {
+            const notificationDiv = document.getElementById('notification-message');
+            const errorDiv = document.getElementById('error-message');
+            notificationDiv.textContent = message;
+            notificationDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                notificationDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Handle video player click to trigger classification
+        function handleVideoClick() {
+            const cameraContainer = document.getElementById('camera-container');
+            // Disable clicks temporarily
+            cameraContainer.style.pointerEvents = 'none';
+            fetchClassification().finally(() => {
+                // Re-enable clicks after classification completes
+                cameraContainer.style.pointerEvents = 'auto';
+            });
+        }
+
+
+        // Initialize classification fetching
+        // Removed the automatic interval since classification is now on-demand
+    </script>
+</body>
+</html>
