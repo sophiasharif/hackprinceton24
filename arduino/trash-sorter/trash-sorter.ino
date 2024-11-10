@@ -39,6 +39,8 @@ void decrementPhase(int& x) {
   x = (x <= 0) ? 7 : (x - 1);
 }
 
+bool acting = false;
+
 const int kickTicks = 1400;
 void doKick(int& setpoint, int& phase, bool& kicking, Stepper& stepper) {
   if (setpoint > 0) {
@@ -54,6 +56,7 @@ void doKick(int& setpoint, int& phase, bool& kicking, Stepper& stepper) {
     setpoint++;
     incrementPhase(phase);
     stepper.turnOn(phase);
+    acting = setpoint != 0;
   }
   else {
     stepper.turnOff();
@@ -89,8 +92,9 @@ int stringPhase = 0;
 
 void loop()
 {
-  if (Serial.available() > 0) {
+  if (Serial.available() > 0 && !acting) {
     int command = Serial.read();
+    acting = true;
     Serial.print("Got ");
     Serial.println((char)command);
     switch (command) {
@@ -108,6 +112,7 @@ void loop()
       case 'B':
         secondGateSetpoint -= 100;
         break;
+      // stepper 3 adjustment
       case 'c':
         stringPosition += 400;
         stringSetpoint = 0;
@@ -147,11 +152,13 @@ void loop()
     stringPosition++;
     decrementPhase(stringPhase);
     stepper3.turnOn(stringPhase);
+    acting = stringPosition != stringSetpoint;
   }
   else if (stringSetpoint < stringPosition) {
     stringPosition--;
     incrementPhase(stringPhase);
     stepper3.turnOn(stringPhase);
+    acting = stringPosition != stringSetpoint;
   }
   else {
     stepper3.turnOff();
