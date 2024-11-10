@@ -24,6 +24,9 @@ spark = configure_spark_with_delta_pip(builder).getOrCreate()
 # Load the Delta table
 df = spark.read.format("delta").load(DELTA_PATH)
 
+# debugging
+df.show(truncate=False)
+
 # Fill nulls in 'is_compostable' and 'is_recyclable' with False
 df = df.fillna({'is_compostable': False, 'is_recyclable': False})
 
@@ -31,10 +34,11 @@ df = df.fillna({'is_compostable': False, 'is_recyclable': False})
 df = df.withColumn('is_trash', ~(col('is_compostable') | col('is_recyclable')))
 
 # Truncate 'time' to the hour for grouping
-df = df.withColumn('datetime_hour', fn.date_trunc('hour', df['time']))
+df = df.withColumn('hour', fn.hour(col('time')))
+
 
 # Group by 'datetime_hour' and compute counts
-grouped_df = df.groupBy('datetime_hour').agg(
+grouped_df = df.groupBy('hour').agg(
     fn.count('*').alias('total_count'),
     fn.sum(col('is_compostable').cast('int')).alias('compostable_count'),
     fn.sum(col('is_recyclable').cast('int')).alias('recyclable_count'),
@@ -47,14 +51,14 @@ grouped_df = grouped_df.withColumn('recyclable_pct', (col('recyclable_count') / 
 grouped_df = grouped_df.withColumn('trash_pct', (col('trash_count') / col('total_count')) * 100)
 
 # Order by 'datetime_hour'
-grouped_df = grouped_df.orderBy('datetime_hour')
+grouped_df = grouped_df.orderBy('hour')
 
 # Convert to Pandas DataFrame for plotting
 pandas_df = grouped_df.toPandas()
 
 # Melt the DataFrame for plotting
 melted_df = pandas_df.melt(
-    id_vars=['datetime_hour'],
+    id_vars=['hour'],
     value_vars=['compostable_pct', 'recyclable_pct', 'trash_pct'],
     var_name='Category',
     value_name='Percentage'
@@ -78,11 +82,11 @@ app = dash.Dash(__name__)
 # Create the area chart using Plotly
 fig = px.area(
     melted_df,
-    x='datetime_hour',
+    x='hour',
     y='Percentage',
     color='Category',
     labels={
-        'datetime_hour': 'Time of Day',
+        'hour': 'Time of Day',
         'Percentage': 'Percentage (%)',
         'Category': 'Category'
     },
