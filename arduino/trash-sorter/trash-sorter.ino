@@ -31,30 +31,60 @@ struct Stepper {
   }
 };
 
+void incrementPhase(int& x) {
+  x = (x >= 7) ? 0 : (x + 1);
+}
+
+void decrementPhase(int& x) {
+  x = (x <= 0) ? 7 : (x - 1);
+}
+
+const int kickTicks = 1000;
+void doKick(int& setpoint, int& phase, bool& kicking, Stepper& stepper) {
+  if (setpoint > 0) {
+    setpoint--;
+    incrementPhase(phase);
+    stepper.turnOn(phase);
+    if (setpoint == 0 && kicking) {
+      setpoint = -kickTicks;
+      kicking = false;
+    }
+  }
+  else if (setpoint < 0) {
+    setpoint++;
+    decrementPhase(phase);
+    stepper.turnOn(phase);
+  }
+  else {
+    stepper.turnOff();
+  }
+}
+
 Stepper stepper1(2, 3, 4, 5);
 Stepper stepper2(6, 7, 8, 9);
 Stepper stepper3(10, 11, 12, 13);
 
 void setup()
 {
-  Serial.begin(9600);
   for (int pin = 2; pin <= 13; pin++) {
     pinMode(pin, OUTPUT);
   }
+  stepper1.turnOff();
+  stepper2.turnOff();
+  stepper3.turnOff();
+  Serial.begin(9600);
 }
 
-int firstGateZero = 0;
-int firstGatePosition = 0;
+bool firstGateKicking = false;
 int firstGateSetpoint = 0;
+int firstGatePhase = 0;
 
-int secondGateZero = 0;
-int secondGatePosition = 0;
+bool secondGateKicking = false;
 int secondGateSetpoint = 0;
+int secondGatePhase = 0;
 
 int stringDirection = 0;
 int stringPhase = 0;
-
-const int gateTicksForClosed = 1000;
 
 void loop()
 {
@@ -65,17 +95,16 @@ void loop()
     switch (command) {
       // TODO commands for manual control of the gates
 
-      case '0': // sort to the first category (first gate closed, second open)
-        firstGateSetpoint = firstGateZero + gateTicksForClosed;
-        secondGateSetpoint = secondGateZero;
+      // TODO remove + and - and / and just include the string movement in the kick
+      // (so the only commands will be manual control or a whole sort)
+
+      case '0': // kick out into the first category
+        firstGateKicking = true;
+        firstGateSetpoint = kickTicks;
         break;
-      case '1': // sort to the second category (second gate closed, first open)
-        firstGateSetpoint = firstGateZero;
-        secondGateSetpoint = secondGateZero + gateTicksForClosed;
-        break;
-      case '2': // sort to the third category (both gates open)
-        firstGateSetpoint = firstGateZero;
-        secondGateSetpoint = secondGateZero;
+      case '1': // kick out into the second category
+        secondGateKicking = true;
+        secondGateSetpoint = kickTicks;
         break;
       case '+': // let out the string
         stringDirection = 1;
@@ -89,32 +118,17 @@ void loop()
     }
   }
 
-  if (firstGatePosition < firstGateSetpoint) {
-    firstGatePosition++;
-    stepper1.turnOn((8 + firstGatePosition % 8) % 8);
-  }
-  else if (firstGatePosition > firstGateSetpoint) {
-    firstGatePosition--;
-    stepper1.turnOn((8 + firstGatePosition % 8) % 8);
-  }
-
-  if (secondGatePosition < secondGateSetpoint) {
-    secondGatePosition++;
-    stepper2.turnOn((8 + secondGatePosition % 8) % 8);
-  }
-  else if (secondGatePosition > secondGateSetpoint) {
-    secondGatePosition--;
-    stepper2.turnOn((8 + secondGatePosition % 8) % 8);
-  }
-
-  if (stringDirection == 1) {
-    stringPhase = (stringPhase == 7) ? 0 : (stringPhase + 1);
-    stepper3.turnOn(stringPhase);
-  }
-  else if (stringDirection == -1) {
-    stringPhase = (stringPhase == 0) ? 7 : (stringPhase - 1);
-    stepper3.turnOn(stringPhase);
-  }
+  doKick(firstGateSetpoint, firstGatePhase, firstGateKicking, stepper1);
+//  doKick(secondGateSetpoint, secondGatePhase, secondGateKicking, stepper2);
+//
+//  if (stringDirection == 1) {
+//    stringPhase = (stringPhase == 7) ? 0 : (stringPhase + 1);
+//    stepper3.turnOn(stringPhase);
+//  }
+//  else if (stringDirection == -1) {
+//    stringPhase = (stringPhase == 0) ? 7 : (stringPhase - 1);
+//    stepper3.turnOn(stringPhase);
+//  }
 
   delayMicroseconds(stepperDelayMicros);
 }
