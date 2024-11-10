@@ -167,6 +167,42 @@ for i, total in enumerate(pandas_df_brand['total_count']):
         yshift=10
     )
 
+# ====== New Bar Graph for Most Wasteful Brands ======
+
+# Group by 'brand' and compute total waste counts
+waste_by_brand = df.groupBy('brand').agg(
+    fn.count('*').alias('total_waste_count')
+)
+
+# Convert to Pandas DataFrame
+waste_by_brand_df = waste_by_brand.toPandas()
+
+# Sort by 'total_waste_count' in descending order to get most wasteful brands
+waste_by_brand_df = waste_by_brand_df.sort_values(by='total_waste_count', ascending=False)
+
+# Optional: Select top N most wasteful brands
+top_n = 10  # You can change this number as needed
+top_wasteful_brands = waste_by_brand_df.head(top_n)
+
+# Create the bar chart using Plotly
+fig_most_wasteful = px.bar(
+    top_wasteful_brands,
+    x='brand',
+    y='total_waste_count',
+    labels={
+        'brand': 'Brand',
+        'total_waste_count': 'Total Waste Items'
+    },
+    title='Top Most Wasteful Brands'
+)
+
+# Update figure layout for better readability
+fig_most_wasteful.update_layout(
+    xaxis_title='Brand',
+    yaxis_title='Total Waste Produced',
+    xaxis_tickangle=45
+)
+
 # ====== Define the Dash App Layout ======
 
 # Create the Dash app
@@ -189,6 +225,13 @@ app.layout = html.Div(children=[
         dcc.Graph(
             id='waste-composition-brand',
             figure=fig_bar
+        )
+    ]),
+    html.Div([
+        html.H2('Top Most Wasteful Brands'),
+        dcc.Graph(
+            id='most-wasteful-brands',
+            figure=fig_most_wasteful
         )
     ])
 ])
