@@ -4,33 +4,8 @@ import pyspark.sql.functions as fn
 from pyspark.sql import SparkSession
 from delta import configure_spark_with_delta_pip
 
-# Define your array of dictionaries
-data_array = [
-    {
-        "filename": "box1.jpg",
-        "time": "2023-10-10T12:34:56",
-        "state": "NJ",
-        "city": "Princeton",
-        "description": "large cardboard box",
-        "is_recyclable": True,
-        "is_compostable": False,
-        "is_metal": False,
-        "brand": "Amazon"
-    },
-     {
-        "filename": "box2.jpg",
-        "time": "2023-10-10T12:34:56",
-        "state": "NJ",
-        "city": "Princeton",
-        "description": "small cardboard box",
-        "is_recyclable": True,
-        "is_compostable": False,
-        "is_metal": False,
-        "brand": "Amazon"
-    },
-]
-
 DELTA_PATH = "../delta-table"
+JSON_FILE_PATH = "notional_data.json"
 
 # Set up SparkSession with Delta Lake configurations
 builder = (
@@ -42,11 +17,10 @@ builder = (
 spark = configure_spark_with_delta_pip(builder).getOrCreate()
 
 # Convert the array of dictionaries to a Spark DataFrame
-new_data_df = spark.createDataFrame(data_array)
+new_data_df = spark.read.option("multiLine", "true").json(JSON_FILE_PATH)
 
 # Convert the `time` field to a timestamp
 new_data_df = new_data_df.withColumn("time", fn.to_timestamp("time"))
-
 
 print("New data schema:")
 new_data_df.printSchema()
