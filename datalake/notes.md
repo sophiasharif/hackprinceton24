@@ -1,5 +1,20 @@
 # DataLake Notes
 
+### instructions to run
+
+in one window:
+
+```
+export OPENAI_API_KEY="..."
+python file_watcher.py
+```
+
+in another window (reload graphs page as needed):
+
+```
+python app.py
+```
+
 ## Useful Resources
 
 - [Getting Started with Delta Lake](https://delta.io/learn/getting-started/)
