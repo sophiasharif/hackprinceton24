@@ -4,7 +4,7 @@ from pyspark.sql import SparkSession
 from delta import configure_spark_with_delta_pip
 import pandas as pd
 import pyspark.sql.functions as fn
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, when
 import dash
 from dash import dcc, html
 import plotly.express as px
@@ -24,11 +24,12 @@ spark = configure_spark_with_delta_pip(builder).getOrCreate()
 # Load the Delta table
 df = spark.read.format("delta").load(DELTA_PATH)
 
-# Fill nulls in 'is_compostable' and 'is_recyclable' with False
-df = df.fillna({'is_compostable': False, 'is_recyclable': False})
+df = df.fillna({'is_compostable': False, 'is_recyclable': False}) # Fill nulls in 'is_compostable' and 'is_recyclable' with False
+df = df.withColumn('brand', when(col('brand') == '', 'Other').otherwise(col('brand')))
 
-# Ensure that items that are both compostable and recyclable are counted as recyclable
-# So we set 'is_compostable' to False if 'is_recyclable' is True
+
+# don't double count items that are both compostable and recyclable
+# set 'is_compostable' to False if 'is_recyclable' is True
 df = df.withColumn('is_compostable', fn.when(col('is_recyclable'), False).otherwise(col('is_compostable')))
 
 # Create 'is_trash' column for items that are neither compostable nor recyclable
