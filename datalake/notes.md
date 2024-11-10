@@ -1,6 +1,16 @@
 # DataLake Notes
 
-### instructions to run
+## instructions to run
+
+### set up virtual environment
+
+```
+python3 -m venv env
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### run app
 
 in one window:
 
