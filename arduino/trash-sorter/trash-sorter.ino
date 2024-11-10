@@ -43,7 +43,7 @@ const int kickTicks = 1000;
 void doKick(int& setpoint, int& phase, bool& kicking, Stepper& stepper) {
   if (setpoint > 0) {
     setpoint--;
-    incrementPhase(phase);
+    decrementPhase(phase);
     stepper.turnOn(phase);
     if (setpoint == 0 && kicking) {
       setpoint = -kickTicks;
@@ -52,7 +52,7 @@ void doKick(int& setpoint, int& phase, bool& kicking, Stepper& stepper) {
   }
   else if (setpoint < 0) {
     setpoint++;
-    decrementPhase(phase);
+    incrementPhase(phase);
     stepper.turnOn(phase);
   }
   else {
@@ -93,8 +93,22 @@ void loop()
     Serial.print("Got ");
     Serial.println((char)command);
     switch (command) {
-      // TODO commands for manual control of the gates
-
+      // stepper 1 adjustment
+      case 'a':
+        firstGateSetpoint += 100;
+        break;
+      case 'A':
+        firstGateSetpoint -= 100;
+        break;
+      // stepper 2 adjustment
+      case 'b':
+        secondGateSetpoint += 100;
+        break;
+      case 'B':
+        secondGateSetpoint -= 100;
+        break;
+      // TODO stepper 3 adjustment
+      
       // TODO remove + and - and / and just include the string movement in the kick
       // (so the only commands will be manual control or a whole sort)
 
@@ -119,16 +133,16 @@ void loop()
   }
 
   doKick(firstGateSetpoint, firstGatePhase, firstGateKicking, stepper1);
-//  doKick(secondGateSetpoint, secondGatePhase, secondGateKicking, stepper2);
-//
-//  if (stringDirection == 1) {
-//    stringPhase = (stringPhase == 7) ? 0 : (stringPhase + 1);
-//    stepper3.turnOn(stringPhase);
-//  }
-//  else if (stringDirection == -1) {
-//    stringPhase = (stringPhase == 0) ? 7 : (stringPhase - 1);
-//    stepper3.turnOn(stringPhase);
-//  }
+  doKick(secondGateSetpoint, secondGatePhase, secondGateKicking, stepper2);
+
+  if (stringDirection == 1) {
+    stringPhase = (stringPhase == 7) ? 0 : (stringPhase + 1);
+    stepper3.turnOn(stringPhase);
+  }
+  else if (stringDirection == -1) {
+    stringPhase = (stringPhase == 0) ? 7 : (stringPhase - 1);
+    stepper3.turnOn(stringPhase);
+  }
 
   delayMicroseconds(stepperDelayMicros);
 }
