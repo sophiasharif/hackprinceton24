@@ -33,7 +33,7 @@ data = []
 
 max_hour_compost_weight = max(hour_compost_weights.values())  # which is 0.7
 
-N = 1000  # Number of data entries to generate
+N = 2500  # Number of data entries to generate
 
 for i in range(N):
     # Generate random time within time_range
@@ -64,26 +64,12 @@ for i in range(N):
     # Determine is_compostable
     compost_prob_brand = brand_compost_weights.get(brand, 0.1)
     compost_prob_hour = hour_compost_weights.get(hour, 0.1) / max_hour_compost_weight
-    compost_prob = compost_prob_brand * compost_prob_hour
+    compost_prob = compost_prob_brand * compost_prob_hour * 3  # increase rate LOL
     is_compostable = random.random() < compost_prob
-
-    # Generate filename based on description
-    if "box" in description:
-        filename = "box" + str(i) + ".jpg"
-    elif "cup" in description:
-        filename = "cup" + str(i) + ".jpg"
-    elif "can" in description:
-        filename = "can" + str(i) + ".jpg"
-    elif "bag" in description:
-        filename = "bag" + str(i) + ".jpg"
-    elif "bottle" in description:
-        filename = "bottle" + str(i) + ".jpg"
-    else:
-        filename = "item" + str(i) + ".jpg"
 
     # Create item
     item = {
-        "filename": filename,
+        "filename": f"{i}.jpg",
         "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "state": state,
         "city": city,
